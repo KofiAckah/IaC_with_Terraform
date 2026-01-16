@@ -1,13 +1,5 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 6.0"
-    }
-  }
-}
-
-# Configure the AWS Provider
-provider "aws" {
-  region = var.aws_region
+# Call the S3 Backend Module
+module "s3_backend" {
+  source = "./modules/s3_backend"
+  bucket_name = var.s3_bucket_name
 }

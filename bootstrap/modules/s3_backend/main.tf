@@ -4,7 +4,7 @@ resource "aws_s3_bucket" "terraform_state" {
 
     tags = {
     Name        = "Terraform State Bucket"
-    Environment = "Production"
+    Environment = "Development"
     Purpose     = "Terraform Backend"
     ManagedBy   = "Terraform"
   }
