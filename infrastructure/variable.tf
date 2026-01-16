@@ -12,6 +12,13 @@ variable "project_name" {
   default     = "iac-terraform"
 }
 
+# Environment
+variable "environment" {
+  description = "The deployment environment (e.g., dev, prod)"
+  type        = string
+  default     = "dev"
+}
+
 # Common Tags
 variable "common_tags" {
   description = "A map of common tags to apply to all resources"
