@@ -1,13 +1,7 @@
 # S3 Bucket for Terraform State
 resource "aws_s3_bucket" "terraform_state" {
   bucket = var.bucket_name
-
-    tags = {
-    Name        = "Terraform State Bucket"
-    Environment = "Development"
-    Purpose     = "Terraform Backend"
-    ManagedBy   = "Terraform"
-  }
+  tags = var.tags
 }
 
 # Enable Versioning
