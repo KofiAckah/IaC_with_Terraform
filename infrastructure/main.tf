@@ -20,15 +20,16 @@ module "network" {
   common_tags  = local.common_tags
 }
 
-
-# # Security Module
-# module "security" {
-#   source = "./modules/Security"
+# Security Module
+module "security" {
+  source = "./modules/Security"
   
-#   vpc_id       = module.network.vpc_id
-#   project_name = var.project_name
-#   tags         = local.common_tags
-# }
+  vpc_id        = module.network.vpc_id
+  vpc_cidr      = var.vpc_cidr
+  project_name  = var.project_name
+  environment   = var.environment
+  common_tags   = local.common_tags 
+}
 
 # # Compute Module
 # module "compute" {
