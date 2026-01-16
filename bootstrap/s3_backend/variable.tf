@@ -1,6 +1,5 @@
 variable "bucket_name" {
-  description = "The name of the S3 bucket"
+  description = "The name of the S3 bucket for Terraform state"
   type        = string
-  default     = "my-bootstrap-bucket"
+  default     = "terraform-state-bucket"
 }
-
