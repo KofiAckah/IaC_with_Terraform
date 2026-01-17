@@ -48,3 +48,29 @@ output "app_security_group_rules" {
   description = "List of security group rules for the application security group"
   value       = module.security.app_security_group_rules
 }
+
+# Compute Outputs
+output "instance_id" {
+  description = "ID of the EC2 instance"
+  value       = module.compute.instance_id
+}
+
+output "instance_public_ip" {
+  description = "Public IP address of the EC2 instance"
+  value       = module.compute.instance_public_ip
+}
+
+output "instance_private_ip" {
+  description = "Private IP address of the EC2 instance"
+  value       = module.compute.instance_private_ip
+}
+
+output "website_url" {
+  description = "URL to access the website"
+  value       = module.compute.website_url
+}
+
+output "instance_public_dns" {
+  description = "Public DNS name of the instance"
+  value       = module.compute.instance_public_dns
+}

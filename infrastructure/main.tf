@@ -31,12 +31,16 @@ module "security" {
   common_tags   = local.common_tags 
 }
 
-# # Compute Module
-# module "compute" {
-#   source = "./modules/Compute"
+# Compute Module
+module "compute" {
+  source = "./modules/Compute"
   
-#   subnet_id          = module.network.public_subnet_id
-#   security_group_ids = [module.security.web_sg_id]
-#   project_name       = var.project_name
-#   tags               = local.common_tags
-# }
+  project_name       = var.project_name
+  environment        = var.environment
+  aws_region         = var.aws_region
+  instance_type      = var.instance_type
+  key_name           = var.key_name
+  subnet_id          = module.network.public_subnet_id
+  security_group_ids = [module.security.app_security_group_id]
+  common_tags        = local.common_tags
+}
