@@ -15,13 +15,15 @@ This project demonstrates Infrastructure as Code (IaC) best practices by deployi
 
 The infrastructure is organized into two main components:
 
-### 1. Bootstrap Infrastructure
-Sets up the remote state backend before deploying main infrastructure.
+### 1. Backend Setup (Bash Scripts)
+Automated bash scripts set up the remote state backend before deploying main infrastructure.
 
 - **S3 Backend**: Secure, versioned storage for Terraform state files
 - **DynamoDB Table**: State locking to prevent concurrent modifications
+- **Logging System**: Comprehensive logging with color-coded output
+- **State Management**: Idempotent operations with state tracking
 
-### 2. Main Infrastructure
+### 2. Main Infrastructure (Terraform)
 Modular architecture with three core modules:
 
 #### Network Module
@@ -45,20 +47,11 @@ Modular architecture with three core modules:
 
 ```
 IaC_with_Terraform/
-├── bootstrap/                      # Remote state backend setup
-│   ├── main.tf                    # Bootstrap configuration
-│   ├── provider.tf                # AWS provider settings
-│   ├── variable.tf                # Bootstrap variables
-│   ├── output.tf                  # S3 bucket and DynamoDB table outputs
-│   └── modules/
-│       ├── s3_backend/            # S3 bucket for state storage
-│       │   ├── main.tf
-│       │   ├── variable.tf
-│       │   └── output.tf
-│       └── dynamodb_lock/         # DynamoDB for state locking
-│           ├── main.tf
-│           ├── variable.tf
-│           └── output.tf
+├── scripts/                        # Backend setup bash scripts
+│   ├── setup_backend.sh           # Main script to create S3 & DynamoDB
+│   ├── config.sh                  # Configuration variables
+│   ├── utils.sh                   # Logging and utility functions
+│   └── .tfstate.env               # State tracking file (auto-generated)
 │
 └── infrastructure/                 # Main infrastructure
     ├── main.tf                    # Root module configuration
@@ -102,51 +95,89 @@ Your IAM user/role needs permissions for:
 
 ## 📝 Deployment Steps
 
-### Step 1: Bootstrap Remote State Backend
+### Step 1: Configure Backend Setup
 
-First, set up the S3 bucket and DynamoDB table for remote state management.
+First, review and customize the backend configuration if needed:
 
 ```bash
-# Navigate to bootstrap directory
-cd bootstrap/
+# Navigate to scripts directory
+cd scripts/
 
-# Initialize Terraform
-terraform init
+# Review configuration (optional - defaults are already set)
+cat config.sh
 
-# Review the execution plan
-terraform plan
-
-# Apply the configuration
-terraform apply
-
-# Note the outputs - you'll need these values
-# - s3_bucket_name
-# - dynamodb_table_name
+# Default values:
+# - PROJECT_NAME="iac-terraform"
+# - ENVIRONMENT="dev"
+# - AWS_REGION="eu-west-1"
+# - BUCKET_NAME="iac-terraform-dev-tfstate"
+# - DYNAMODB_TABLE="iac-terraform-dev-tfstate-lock"
 ```
 
-**Important**: Save the output values! You'll need them for the backend configuration.
+### Step 2: Run Backend Setup Script
 
-### Step 2: Configure Backend for Main Infrastructure
+Execute the bash script to create S3 bucket and DynamoDB table:
 
-Update the `infrastructure/backend.tf` file with the values from Step 1:
+```bash
+# Make script executable (if not already)
+chmod +x setup_backend.sh
 
-```hcl
+# Run the backend setup script
+./setup_backend.sh
+```
+
+The script will:
+- ✅ Validate AWS CLI installation and credentials
+- ✅ Create S3 bucket with versioning and encryption
+- ✅ Block public access to the S3 bucket
+- ✅ Create DynamoDB table for state locking
+- ✅ Save configuration to `.tfstate.env`
+- ✅ Provide backend configuration for Terraform
+
+**Output Example:**
+```
+==========================================
+Backend Setup Summary
+==========================================
+S3 Bucket: iac-terraform-dev-tfstate
+DynamoDB Table: iac-terraform-dev-tfstate-lock
+Region: eu-west-1
+
+Add the following to your backend.tf:
+
 terraform {
   backend "s3" {
-    bucket         = "<your-s3-bucket-name>"      # From bootstrap output
-    key            = "infrastructure/terraform.tfstate"
-    region         = "eu-central-1"                # Your AWS region
-    dynamodb_table = "<your-dynamodb-table-name>" # From bootstrap output
+    bucket         = "iac-terraform-dev-tfstate"
+    key            = "terraform.tfstate"
+    region         = "eu-west-1"
+    dynamodb_table = "iac-terraform-dev-tfstate-lock"
     encrypt        = true
   }
 }
+==========================================
+```
+5: Deploy Main Infrastructure
+
+```bash
+# Navigate to infrastructure directory
+cd ../infrastructure/
+
+# Initialize Terraform (configures backend)
+terraform init
+
+# Validate configuration
+terraform validate
+
+# Preview changes for development environment
+terraform plan -var-file="dev.tfvars"
+
+# Deploy the infrastructure
+terraform apply -var-file="dev.tfvars"
+
+# When prompted, type 'yes' to confirm
 ```
 
-### Step 3: Customize Environment Variables
-
-Edit the appropriate `.tfvars` file for your environment:
-
-**For Development (`dev.tfvars`):**
+### Step 3 Development (`dev.tfvars`):**
 ```hcl
 environment  = "dev"
 project_name = "iac-terraform"
@@ -221,11 +252,19 @@ Each environment is isolated with its own:
 
 ## 🔍 Key Features
 
+### Bash-based Backend Setup
+- **Automated Setup**: One script to create all backend resources
+- **Comprehensive Logging**: Color-coded output with detailed logs
+- **Idempotent Operations**: Safe to run multiple times
+- **State Tracking**: Tracks created resources in `.tfstate.env`
+- **Pre-flight Checks**: Validates AWS CLI and credentials before execution
+
 ### Remote State Management
 - **S3 Backend**: Centralized, versioned state storage
 - **DynamoDB Locking**: Prevents concurrent state modifications
-- **Encryption**: State files encrypted at rest
+- **Encryption**: State files encrypted at rest (AES256)
 - **Versioning**: Track state file history
+- **Public Access Blocked**: S3 bucket secured against public access
 
 ### Security Best Practices
 - **Public Access Blocking**: S3 bucket not publicly accessible
@@ -263,16 +302,45 @@ After deployment, Terraform provides these outputs:
 - `app_security_group_rules`: List of security rules
 
 ### Compute Outputs
-- `instance_id`: EC2 instance identifier
+### Test Backend Setup
+
+```bash
+# Test 1: Verify S3 bucket exists
+aws s3 ls s3://iac-terraform-dev-tfstate --region eu-west-1
+
+# Test 2: Check DynamoDB table
+aws dynamodb describe-table --table-name iac-terraform-dev-tfstate-lock --region eu-west-1
+
+# Test 3: Review setup logs
+cat scripts/terraform-backend.log
+
+# Test 4: Check state file
+cat scripts/.tfstate.env
+```
+
+### Test Infrastructure Deploymentstance identifier
 - `instance_public_ip`: Public IP address
-- `instance_private_ip`: Private IP address
-- `instance_public_dns`: Public DNS name
-- `website_url`: Direct URL to access the website
+- `instanceBackend script fails
+- **Check AWS CLI**: Run `aws --version` to verify installation
+- **Verify Credentials**: Run `aws sts get-caller-identity`
+- **Review Logs**: Check `scripts/terraform-backend.log` for details
+- **IAM Permissions**: Ensure S3 and DynamoDB create permissions
+- **Region Validation**: Confirm region is valid and accessible
 
-## 🧪 Testing
+### Issue: Bucket already exists
+- **Idempotent Script**: The script checks for existing resources
+- **State File**: Check `scripts/.tfstate.env` for tracked resources
+- **Manual Check**: Run `aws s3 ls` to see your buckets
+- **Force Recreation**: Delete resources manually if needed
 
-Verify your deployment:
+### Issue: Website not loading
+- **Wait**: Allow 2-3 minutes for user data script to complete
+- **Check Security Group**: Ensure port 80 is open (0.0.0.0/0)
+- **Verify Public IP**: Confirm instance has a public IP assigned
+- **Check Nginx**: SSH into instance and run `sudo systemctl status nginx`
 
+### Issue: Backend initialization failed
+- **Verify S3 Bucket**: Ensure setup script complet
 ```bash
 # Test 1: Check Terraform outputs
 terraform output
@@ -286,15 +354,29 @@ ssh -i /path/to/your-key.pem ubuntu@$(terraform output -raw instance_public_ip)
 # Test 4: Check Nginx status (from SSH)
 sudo systemctl status nginx
 ```
+Step 1: Destroy main infrastructure
+cd infrastructure/
+terraform destroy -var-file="dev.tfvars"
 
-## 🔧 Troubleshooting
+# Step 2: Delete backend resources (manual)
+# Note: S3 bucket must be empty before deletion
 
-### Issue: Website not loading
-- **Wait**: Allow 2-3 minutes for user data script to complete
-- **Check Security Group**: Ensure port 80 is open (0.0.0.0/0)
-- **Verify Public IP**: Confirm instance has a public IP assigned
-- **Check Nginx**: SSH into instance and run `sudo systemctl status nginx`
+# List and delete all objects in the bucket
+aws s3 rm s3://iac-terraform-dev-tfstate --recursive --region eu-west-1
 
+# Delete the S3 bucket
+aws s3api delete-bucket \
+    --bucket iac-terraform-dev-tfstate \
+    --region eu-west-1
+
+# Delete the DynamoDB table
+aws dynamodb delete-table \
+    --table-name iac-terraform-dev-tfstate-lock \
+    --region eu-west-1
+
+# Step 3: Clean up state files
+cd ../scripts/
+rm -f .tfstate.env terraform-backend.log
 ### Issue: Backend initialization failed
 - **Verify S3 Bucket**: Ensure bootstrap was applied successfully
 - **Check IAM Permissions**: Confirm S3 and DynamoDB access
@@ -318,10 +400,6 @@ To destroy all resources and avoid AWS charges:
 # Destroy main infrastructure
 cd infrastructure/
 terraform destroy -var-file="dev.tfvars"
-
-# Destroy bootstrap resources (optional)
-cd ../bootstrap/
-terraform destroy
 
 # Note: S3 bucket must be empty before deletion
 ```
