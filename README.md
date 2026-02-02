@@ -2,7 +2,7 @@
 
 A complete AWS infrastructure deployment using Terraform with modular architecture, remote state management, and multi-environment support.
 
-## 📋 Project Overview
+## Project Overview
 
 This project demonstrates Infrastructure as Code (IaC) best practices by deploying a complete AWS infrastructure including:
 - **VPC with public subnets**
@@ -11,7 +11,7 @@ This project demonstrates Infrastructure as Code (IaC) best practices by deployi
 - **Remote state management with S3 and DynamoDB**
 - **Multi-environment support (dev, staging, prod)**
 
-## 🏗️ Architecture
+## Architecture
 
 The infrastructure is organized into two main components:
 
@@ -43,7 +43,7 @@ Modular architecture with three core modules:
 - Custom HTML landing page with environment info
 - Public IP assignment for web access
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 IaC_with_Terraform/
@@ -77,7 +77,7 @@ IaC_with_Terraform/
             └── output.tf
 ```
 
-## 🚀 Prerequisites
+## Prerequisites
 
 Before you begin, ensure you have the following:
 
@@ -93,7 +93,7 @@ Your IAM user/role needs permissions for:
 - S3 (bucket creation and management)
 - DynamoDB (table creation and management)
 
-## 📝 Deployment Steps
+## Deployment Steps
 
 ### Step 1: Configure Backend Setup
 
@@ -177,7 +177,7 @@ terraform apply -var-file="dev.tfvars"
 # When prompted, type 'yes' to confirm
 ```
 
-### Step 3 Development (`dev.tfvars`):**
+### Step 3 Development (`dev.tfvars`):
 ```hcl
 environment  = "dev"
 project_name = "iac-terraform"
@@ -229,7 +229,7 @@ Open the `website_url` in your browser to see your deployed web application!
 
 **Note**: Wait 2-3 minutes after deployment for the user data script to complete Nginx installation.
 
-## 🌍 Multi-Environment Deployment
+## Multi-Environment Deployment
 
 Deploy to different environments using the respective `.tfvars` files:
 
@@ -250,7 +250,7 @@ Each environment is isolated with its own:
 - EC2 instances
 - Resource tags
 
-## 🔍 Key Features
+## Key Features
 
 ### Bash-based Backend Setup
 - **Automated Setup**: One script to create all backend resources
@@ -285,7 +285,7 @@ Each environment is isolated with its own:
 - **Latest Ubuntu AMI**: Automatically fetches Ubuntu 22.04 LTS
 - **Metadata Service**: IMDSv2 configured for enhanced security
 
-## 📊 Outputs
+## Outputs
 
 After deployment, Terraform provides these outputs:
 
@@ -392,7 +392,7 @@ rm -f .tfstate.env terraform-backend.log
 - **Force Unlock**: `terraform force-unlock <lock-id>` (use carefully)
 - **Permissions**: Ensure DynamoDB read/write permissions
 
-## 🧹 Cleanup
+## Cleanup
 
 To destroy all resources and avoid AWS charges:
 
@@ -404,16 +404,16 @@ terraform destroy -var-file="dev.tfvars"
 # Note: S3 bucket must be empty before deletion
 ```
 
-⚠️ **Warning**: This will permanently delete all resources. Ensure you have backups if needed.
+**Warning**: This will permanently delete all resources. Ensure you have backups if needed.
 
-## 📚 Additional Resources
+## Additional Resources
 
 - [Terraform Documentation](https://www.terraform.io/docs)
 - [AWS Provider Documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 - [Terraform Best Practices](https://www.terraform-best-practices.com/)
 - [AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/)
 
-## 🤝 Contributing
+## Contributing
 
 To contribute to this project:
 
@@ -425,7 +425,7 @@ To contribute to this project:
 
 ---
 
-**Project Status**: ✅ Deployed and Operational
+**Project Status**: Deployed and Operational
 
 **Last Updated**: January 2026
 
